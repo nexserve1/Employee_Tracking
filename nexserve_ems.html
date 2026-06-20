@@ -241,7 +241,7 @@ tr:hover td{background:var(--bg3)}
         <span class="forgot-link" onclick="showForgot()">Forgot password?</span>
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:10px" onclick="doLogin()">Sign In</button>
-      <p style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text2)">Demo: admin@nexserve.com / admin123 &nbsp;|&nbsp; emp@nexserve.com / emp123</p>
+      <p style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text2)">Demo: Tarun@nexserve.com / Tarun@2204 &nbsp;|&nbsp; emp@nexserve.com / emp123</p>
     </div>
     <!-- Forgot Password -->
     <div id="form-forgot" class="hidden">
@@ -409,7 +409,7 @@ const DB = {
 function initDB(){
   if(!DB.get('users')){
     DB.set('users',[
-      {id:'u1',name:'Admin User',email:'admin@nexserve.com',password:'admin123',role:'admin',designation:'System Administrator',dept:'IT',phone:'9876543210',joinDate:'2023-01-01',status:'offline',avatar:'AU',avatarBg:'#4f46e5'},
+      {id:'u1',name:'Admin User',email:'Tarun@nexserve.com',password:'Tarun@2204',role:'admin',designation:'System Administrator',dept:'IT',phone:'9462253470',joinDate:'2023-01-01',status:'offline',avatar:'AU',avatarBg:'#4f46e5'},
       {id:'u2',name:'Rahul Sharma',email:'emp@nexserve.com',password:'emp123',role:'employee',designation:'Sales Executive',dept:'Sales',phone:'9123456789',joinDate:'2023-06-01',status:'offline',avatar:'RS',avatarBg:'#10b981'},
       {id:'u3',name:'Priya Mehta',email:'priya@nexserve.com',password:'emp123',role:'employee',designation:'Technical Support',dept:'Support',phone:'9234567890',joinDate:'2023-08-15',status:'offline',avatar:'PM',avatarBg:'#f59e0b'},
       {id:'u4',name:'Karan Joshi',email:'karan@nexserve.com',password:'emp123',role:'employee',designation:'Network Engineer',dept:'Networking',phone:'9345678901',joinDate:'2024-01-10',status:'offline',avatar:'KJ',avatarBg:'#ef4444'},
@@ -882,7 +882,7 @@ function showAddEmployee(){
       </div>
       <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="form-row"><label>Password *</label><input type="password" id="emp-pass" placeholder="Password"></div>
-        <div class="form-row"><label>Phone</label><input type="tel" id="emp-phone" placeholder="9876543210"></div>
+        <div class="form-row"><label>Phone</label><input type="tel" id="emp-phone" placeholder="9462253470"></div>
       </div>
       <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
         <div class="form-row"><label>Designation</label><input type="text" id="emp-desig" placeholder="e.g. Sales Executive"></div>
