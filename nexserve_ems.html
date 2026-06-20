@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexServe IT Solutions — EMS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#f4f6fb;--bg2:#fff;--bg3:#f0f2f7;
+--text:#1a1d23;--text2:#5a6270;--text3:#9ba3b0;
+--border:#e2e6ed;--border2:#c8cdd8;
+--primary:#4f46e5;--primary-light:#ede9ff;--primary-dark:#3730a3;
+--success:#10b981;--success-light:#d1fae5;
+--danger:#ef4444;--danger-light:#fee2e2;
+--warn:#f59e0b;--warn-light:#fef3c7;
+--info:#3b82f6;--info-light:#dbeafe;
+--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+--shadow2:0 4px 16px rgba(0,0,0,.1);
+--radius:10px;--radius2:14px;
+--sidebar:240px;
+}
+[data-theme="dark"]{
+--bg:#0f1117;--bg2:#1a1d27;--bg3:#12151e;
+--text:#e8eaf0;--text2:#9ba3b5;--text3:#5a6270;
+--border:#2a2d3a;--border2:#3a3d4a;
+--primary:#6366f1;--primary-light:#1e1b4b;--primary-dark:#818cf8;
+--success-light:#064e3b;--danger-light:#450a0a;--warn-light:#451a03;--info-light:#1e3a5f;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;transition:background .2s,color .2s}
+a{color:var(--primary);text-decoration:none}
+button{cursor:pointer;font-family:inherit;font-size:14px;border:none;outline:none}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--text);background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;width:100%;outline:none;transition:border .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+textarea{resize:vertical;min-height:80px}
+label{display:block;font-weight:500;color:var(--text2);margin-bottom:4px;font-size:13px}
+
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;transition:width .25s}
+#sidebar.collapsed{width:0;overflow:hidden}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+#content{flex:1;overflow-y:auto;padding:24px}
+
+/* Sidebar */
+.logo{padding:18px 20px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.logo-icon{width:34px;height:34px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.logo-text{font-size:13px;font-weight:700;color:var(--text);line-height:1.2}
+.logo-sub{font-size:11px;color:var(--text3);font-weight:400}
+nav{padding:12px 0;flex:1}
+.nav-section{padding:8px 16px 4px;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;color:var(--text2);border-radius:0;cursor:pointer;transition:background .15s,color .15s;font-size:13.5px;white-space:nowrap}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--primary-light);color:var(--primary);font-weight:600}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer}
+.user-chip:hover{background:var(--bg3)}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:11px;color:var(--text3)}
+
+/* Topbar */
+.topbar-title{font-weight:600;font-size:16px;flex:1}
+.btn-icon{width:34px;height:34px;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:background .15s;border:1px solid transparent}
+.btn-icon:hover{background:var(--bg3);border-color:var(--border)}
+.btn-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.status-badge{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500}
+.status-badge.online{background:var(--success-light);color:var(--success)}
+.status-badge.offline{background:var(--bg3);color:var(--text3)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* Cards & Grid */
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.grid-4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;box-shadow:var(--shadow)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;color:var(--text)}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.metric-label{font-size:12px;color:var(--text3);font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.metric-label svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.metric-value{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.metric-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.metric-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.metric-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;font-weight:500;font-size:13.5px;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn-secondary{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.btn-secondary:hover{background:var(--border);border-color:var(--border2)}
+.btn-danger{background:var(--danger-light);color:var(--danger);border-color:rgba(239,68,68,.2)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-success{background:var(--success-light);color:var(--success);border-color:rgba(16,185,129,.2)}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:var(--radius2);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:500px}
+th{background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:13.5px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
+.badge-green{background:var(--success-light);color:var(--success)}
+.badge-red{background:var(--danger-light);color:var(--danger)}
+.badge-amber{background:var(--warn-light);color:var(--warn)}
+.badge-blue{background:var(--info-light);color:var(--info)}
+.badge-gray{background:var(--bg3);color:var(--text3)}
+.badge-purple{background:var(--primary-light);color:var(--primary)}
+
+/* Forms */
+.form-grid{display:grid;gap:14px}
+.form-grid-2{grid-template-columns:1fr 1fr}
+.form-row{display:flex;flex-direction:column;gap:4px}
+.form-section{margin-bottom:20px}
+.form-section-title{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.modal{background:var(--bg2);border-radius:var(--radius2);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow2)}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:16px;font-weight:700}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* Auth */
+#auth-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;align-items:center;justify-content:center}
+#auth-screen.active{display:flex}
+.auth-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:40px;width:100%;max-width:400px;box-shadow:var(--shadow2)}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{width:54px;height:54px;background:var(--primary);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;margin-bottom:12px}
+.auth-title{font-size:22px;font-weight:700;color:var(--text)}
+.auth-sub{font-size:13.5px;color:var(--text2);margin-top:4px}
+.tab-switcher{display:flex;background:var(--bg3);border-radius:8px;padding:3px;margin-bottom:22px}
+.tab-btn{flex:1;padding:7px;text-align:center;border-radius:6px;font-size:13px;font-weight:500;color:var(--text2);background:transparent;transition:all .2s;border:none}
+.tab-btn.active{background:var(--bg2);color:var(--text);box-shadow:var(--shadow)}
+.forgot-link{font-size:12.5px;color:var(--primary);cursor:pointer;text-align:right;display:block;margin-top:4px}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.alert-danger{background:var(--danger-light);color:var(--danger);border:1px solid rgba(239,68,68,.2)}
+.alert-success{background:var(--success-light);color:var(--success);border:1px solid rgba(16,185,129,.2)}
+
+/* Page sections */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.page-title{font-size:20px;font-weight:700}
+.page-sub{font-size:13.5px;color:var(--text2);margin-top:2px}
+.search-bar{display:flex;align-items:center;gap:1px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.search-bar svg{width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2;margin-left:10px;flex-shrink:0}
+.search-bar input{border:none;background:transparent;padding:8px 12px;flex:1;box-shadow:none}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.filter-row select{width:auto;min-width:140px;padding:6px 10px;font-size:13px}
+.filter-row input[type="date"]{width:auto;padding:6px 10px;font-size:13px}
+
+/* Progress bar */
+.progress-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--primary);transition:width .3s}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:var(--shadow2);display:flex;align-items:center;gap:10px;min-width:240px;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Online indicator */
+.online-dot{width:9px;height:9px;border-radius:50%;background:var(--success);display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Misc */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+.section-divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;background:var(--bg3);color:var(--text2)}
+.time-display{font-variant-numeric:tabular-nums;font-size:13px;color:var(--text2)}
+
+/* Chart container */
+.chart-wrap{position:relative;height:220px;width:100%}
+
+/* Notification dot */
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--danger);position:absolute;top:-2px;right:-2px}
+
+/* Responsive */
+@media(max-width:768px){
+#sidebar{position:fixed;inset-y:0;left:0;z-index:50}
+#sidebar.collapsed{width:0}
+.grid-4{grid-template-columns:1fr 1fr}
+.form-grid-2{grid-template-columns:1fr}
+#content{padding:16px}
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+.hidden{display:none!important}
+.flex{display:flex}
+.flex-1{flex:1}
+.items-center{align-items:center}
+.gap-2{gap:8px}
+.gap-3{gap:12px}
+.gap-4{gap:16px}
+.mb-4{margin-bottom:16px}
+.mb-3{margin-bottom:12px}
+.mb-2{margin-bottom:8px}
+.mt-2{margin-top:8px}
+.text-sm{font-size:13px}
+.text-xs{font-size:12px}
+.text-muted{color:var(--text2)}
+.font-bold{font-weight:700}
+.font-600{font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen" class="active">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">N</div>
+      <div class="auth-title">NexServe IT Solutions</div>
+      <div class="auth-sub">Employee Management System</div>
+    </div>
+    <div id="auth-alert" class="hidden"></div>
+    <!-- Login Form -->
+    <div id="form-login">
+      <div class="form-row mb-3">
+        <label>Email Address</label>
+        <input type="email" id="login-email" placeholder="you@nexserve.com" autocomplete="email">
+      </div>
+      <div class="form-row mb-2">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        <span class="forgot-link" onclick="showForgot()">Forgot password?</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:10px" onclick="doLogin()">Sign In</button>
+      <p style="text-align:center;margin-top:14px;font-size:12.5px;color:var(--text2)">Demo: admin@nexserve.com / admin123 &nbsp;|&nbsp; emp@nexserve.com / emp123</p>
+    </div>
+    <!-- Forgot Password -->
+    <div id="form-forgot" class="hidden">
+      <div class="form-row mb-3">
+        <label>Registered Email</label>
+        <input type="email" id="forgot-email" placeholder="you@nexserve.com">
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px;padding:10px" onclick="doForgot()">Send Reset Link</button>
+      <button class="btn btn-secondary" style="width:100%;margin-top:8px;padding:10px" onclick="backToLogin()">← Back to Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="logo">
+      <div class="logo-icon">N</div>
+      <div>
+        <div class="logo-text">NexServe EMS</div>
+        <div class="logo-sub">IT Solutions</div>
+      </div>
+    </div>
+    <nav id="nav-menu"></nav>
+    <div class="sidebar-footer">
+      <div class="user-chip" onclick="navigateTo('profile')">
+        <div class="avatar" id="sb-avatar" style="background:var(--primary-light);color:var(--primary)"></div>
+        <div class="user-info">
+          <div class="user-name" id="sb-name">—</div>
+          <div class="user-role" id="sb-role">—</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div id="main">
+    <!-- Topbar -->
+    <div id="topbar">
+      <button class="btn-icon" onclick="toggleSidebar()" title="Menu">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div id="topbar-right" style="display:flex;align-items:center;gap:10px;margin-left:auto">
+        <div id="live-clock" class="time-display"></div>
+        <div class="status-badge" id="topbar-status"><div class="dot"></div><span id="topbar-status-text">Offline</span></div>
+        <button class="btn-icon" onclick="toggleTheme()" title="Toggle theme">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <button class="btn btn-danger btn-sm" id="logout-btn" onclick="initiateLogout()">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+    <!-- Content -->
+    <div id="content"></div>
+  </div>
+</div>
+
+<!-- LOGOUT PRODUCTIVITY MODAL -->
+<div id="logout-modal" class="modal-backdrop hidden">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📋 Daily Work Report</div>
+        <div class="text-sm text-muted mt-2" style="margin-top:4px">Submit before logging out — this is mandatory</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-row">
+            <label>Work Category *</label>
+            <select id="lr-category">
+              <option value="">Select category</option>
+              <option>Laptop Sales</option><option>Lead Generation</option><option>Technical Support</option>
+              <option>Customer Support</option><option>AMC</option><option>Office Setup</option>
+              <option>Networking</option><option>Website</option><option>Marketing</option>
+              <option>Administration</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Status *</label>
+            <select id="lr-status">
+              <option value="">Select status</option>
+              <option>Completed</option><option>In Progress</option><option>Pending</option><option>Blocked</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Work Title *</label>
+          <input type="text" id="lr-title" placeholder="e.g. Generated 20 Leads">
+        </div>
+        <div class="form-row">
+          <label>Work Description *</label>
+          <textarea id="lr-desc" placeholder="Describe your work in detail..."></textarea>
+        </div>
+        <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-row">
+            <label>Priority</label>
+            <select id="lr-priority">
+              <option>Medium</option><option>Low</option><option>High</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Hours Spent</label>
+            <input type="number" id="lr-hours" placeholder="e.g. 4" min="0" max="24" step="0.5">
+          </div>
+        </div>
+        <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-row">
+            <label>Client Name (Optional)</label>
+            <input type="text" id="lr-client" placeholder="Client name">
+          </div>
+          <div class="form-row">
+            <label>Attachments (Optional)</label>
+            <input type="file" id="lr-attach" accept="image/*,.pdf,.xlsx,.xls" multiple style="padding:6px">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Remarks (Optional)</label>
+          <textarea id="lr-remarks" placeholder="Additional notes..." style="min-height:60px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cancelLogout()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLogoutReport()">
+        <svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>
+        Submit & Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERIC MODAL -->
+<div id="generic-modal" class="modal-backdrop hidden">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title" id="gm-title"></div>
+      <button class="btn-icon" onclick="closeGenericModal()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="gm-body"></div>
+    <div class="modal-footer" id="gm-footer"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// =====================
+// DATA LAYER
+// =====================
+const DB = {
+  get(key){try{return JSON.parse(localStorage.getItem('nexserve_'+key))||null}catch{return null}},
+  set(key,val){localStorage.setItem('nexserve_'+key,JSON.stringify(val))},
+  del(key){localStorage.removeItem('nexserve_'+key)}
+};
+
+function initDB(){
+  if(!DB.get('users')){
+    DB.set('users',[
+      {id:'u1',name:'Admin User',email:'admin@nexserve.com',password:'admin123',role:'admin',designation:'System Administrator',dept:'IT',phone:'9876543210',joinDate:'2023-01-01',status:'offline',avatar:'AU',avatarBg:'#4f46e5'},
+      {id:'u2',name:'Rahul Sharma',email:'emp@nexserve.com',password:'emp123',role:'employee',designation:'Sales Executive',dept:'Sales',phone:'9123456789',joinDate:'2023-06-01',status:'offline',avatar:'RS',avatarBg:'#10b981'},
+      {id:'u3',name:'Priya Mehta',email:'priya@nexserve.com',password:'emp123',role:'employee',designation:'Technical Support',dept:'Support',phone:'9234567890',joinDate:'2023-08-15',status:'offline',avatar:'PM',avatarBg:'#f59e0b'},
+      {id:'u4',name:'Karan Joshi',email:'karan@nexserve.com',password:'emp123',role:'employee',designation:'Network Engineer',dept:'Networking',phone:'9345678901',joinDate:'2024-01-10',status:'offline',avatar:'KJ',avatarBg:'#ef4444'},
+    ]);
+  }
+  if(!DB.get('attendance'))DB.set('attendance',[]);
+  if(!DB.get('reports'))DB.set('reports',[]);
+  if(!DB.get('notifications'))DB.set('notifications',[]);
+  if(!DB.get('auditLogs'))DB.set('auditLogs',[]);
+}
+
+// =====================
+// STATE
+// =====================
+let currentUser = null;
+let loginTime = null;
+let currentPage = 'dashboard';
+let clockInterval = null;
+let pendingLogout = false;
+
+// =====================
+// UTILITIES
+// =====================
+function uid(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)}
+function today(){return new Date().toISOString().slice(0,10)}
+function nowStr(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function fmtDate(d){if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}
+function fmtTime(ts){if(!ts)return'—';return new Date(ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}
+function fmtDateTime(ts){if(!ts)return'—';return new Date(ts).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+function hoursWorked(loginTs,logoutTs){
+  if(!loginTs)return 0;
+  const end=logoutTs?new Date(logoutTs):new Date();
+  return Math.max(0,((end-new Date(loginTs))/3600000)).toFixed(2);
+}
+function getInitials(name){return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const el=document.createElement('div');
+  const colors={success:'var(--success)',danger:'var(--danger)',warn:'var(--warn)',info:'var(--info)'};
+  el.className='toast-item';
+  el.innerHTML=`<div class="toast-dot" style="background:${colors[type]||colors.success}"></div>${escHtml(msg)}`;
+  t.appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+function getUsers(){return DB.get('users')||[]}
+function saveUsers(u){DB.set('users',u)}
+function getAttendance(){return DB.get('attendance')||[]}
+function saveAttendance(a){DB.set('attendance',a)}
+function getReports(){return DB.get('reports')||[]}
+function saveReports(r){DB.set('reports',r)}
+function getNotifications(){return DB.get('notifications')||[]}
+function saveNotifications(n){DB.set('notifications',n)}
+function getAuditLogs(){return DB.get('auditLogs')||[]}
+function saveAuditLogs(l){DB.set('auditLogs',l)}
+function addNotification(title,msg,forUserId='all'){
+  const ns=getNotifications();
+  ns.unshift({id:uid(),title,msg,forUserId,time:Date.now(),read:false});
+  saveNotifications(ns.slice(0,100));
+}
+function addAuditLog(action,detail,userId){
+  const logs=getAuditLogs();
+  logs.unshift({id:uid(),action,detail,userId,time:Date.now(),ip:'192.168.1.'+Math.floor(Math.random()*250+1)});
+  saveAuditLogs(logs.slice(0,200));
+}
+function statusBadge(s){
+  const m={Completed:'badge-green',Inprogress:'badge-blue','In Progress':'badge-blue',Pending:'badge-amber',Blocked:'badge-red',Online:'badge-green',Offline:'badge-gray',online:'badge-green',offline:'badge-gray',High:'badge-red',Medium:'badge-amber',Low:'badge-blue'};
+  return `<span class="badge ${m[s]||'badge-gray'}">${escHtml(s)}</span>`;
+}
+
+// =====================
+// AUTH
+// =====================
+function showForgot(){
+  document.getElementById('form-login').classList.add('hidden');
+  document.getElementById('form-forgot').classList.remove('hidden');
+  clearAuthAlert();
+}
+function backToLogin(){
+  document.getElementById('form-forgot').classList.add('hidden');
+  document.getElementById('form-login').classList.remove('hidden');
+  clearAuthAlert();
+}
+function clearAuthAlert(){const a=document.getElementById('auth-alert');a.className='hidden';a.textContent=''}
+function showAuthAlert(msg,type='danger'){
+  const a=document.getElementById('auth-alert');
+  a.className=`alert alert-${type}`;a.textContent=msg;
+}
+function doLogin(){
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  const pass=document.getElementById('login-password').value;
+  if(!email||!pass){showAuthAlert('Please enter email and password');return}
+  const users=getUsers();
+  const user=users.find(u=>u.email.toLowerCase()===email&&u.password===pass);
+  if(!user){showAuthAlert('Invalid credentials. Please try again.');return}
+  currentUser=user;
+  loginTime=Date.now();
+  // Record attendance
+  const att=getAttendance();
+  const existing=att.find(a=>a.userId===user.id&&a.date===today()&&!a.logoutTime);
+  if(!existing){
+    att.push({id:uid(),userId:user.id,date:today(),loginTime:loginTime,logoutTime:null,hours:0,report:null});
+    saveAttendance(att);
+  }
+  // Update user status
+  const us=getUsers();
+  const ui=us.findIndex(u=>u.id===user.id);
+  if(ui>=0){us[ui].status='online';us[ui].lastLogin=loginTime;saveUsers(us);currentUser=us[ui]}
+  addNotification('Employee Login',`${user.name} logged in`,user.role==='admin'?'all':user.id);
+  addAuditLog('LOGIN',`${user.name} logged in from browser`,user.id);
+  document.getElementById('auth-screen').classList.remove('active');
+  initUI();
+  toast(`Welcome back, ${user.name.split(' ')[0]}! 👋`,'success');
+}
+function doForgot(){
+  const email=document.getElementById('forgot-email').value.trim();
+  if(!email){showAuthAlert('Please enter your email');return}
+  const users=getUsers();
+  const user=users.find(u=>u.email.toLowerCase()===email.toLowerCase());
+  if(!user){showAuthAlert('No account found with this email','danger');return}
+  showAuthAlert(`Password reset link sent to ${email}. (Demo: check your email)  — Password: ${user.password}`,'success');
+}
+
+// =====================
+// UI INIT
+// =====================
+function initUI(){
+  buildNav();
+  updateSidebar();
+  startClock();
+  updateTopbarStatus();
+  navigateTo('dashboard');
+}
+function buildNav(){
+  const adminNav=[
+    {section:'Overview'},
+    {id:'dashboard',icon:homeIcon,label:'Dashboard'},
+    {id:'analytics',icon:chartIcon,label:'Analytics'},
+    {section:'Employees'},
+    {id:'employees',icon:usersIcon,label:'All Employees'},
+    {id:'attendance',icon:calIcon,label:'Attendance'},
+    {id:'reports',icon:fileIcon,label:'Work Reports'},
+    {section:'System'},
+    {id:'notifications',icon:bellIcon,label:'Notifications'},
+    {id:'audit',icon:logIcon,label:'Audit Logs'},
+    {id:'profile',icon:userIcon,label:'My Profile'},
+  ];
+  const empNav=[
+    {section:'My Space'},
+    {id:'dashboard',icon:homeIcon,label:'Dashboard'},
+    {id:'my-reports',icon:fileIcon,label:'My Reports'},
+    {id:'attendance',icon:calIcon,label:'My Attendance'},
+    {section:'Account'},
+    {id:'notifications',icon:bellIcon,label:'Notifications'},
+    {id:'profile',icon:userIcon,label:'My Profile'},
+  ];
+  const items=currentUser.role==='admin'?adminNav:empNav;
+  const nav=document.getElementById('nav-menu');
+  nav.innerHTML=items.map(i=>{
+    if(i.section)return`<div class="nav-section">${i.section}</div>`;
+    return`<div class="nav-item" id="nav-${i.id}" onclick="navigateTo('${i.id}')">${i.icon}<span>${i.label}</span></div>`;
+  }).join('');
+}
+function updateSidebar(){
+  if(!currentUser)return;
+  document.getElementById('sb-name').textContent=currentUser.name;
+  document.getElementById('sb-role').textContent=currentUser.role==='admin'?'Administrator':currentUser.designation||'Employee';
+  const av=document.getElementById('sb-avatar');
+  av.textContent=currentUser.avatar||getInitials(currentUser.name);
+  av.style.background=currentUser.avatarBg||'var(--primary-light)';
+  av.style.color=currentUser.role==='admin'?'#fff':'var(--primary)';
+  if(currentUser.role==='admin'){av.style.background=currentUser.avatarBg||'var(--primary)';av.style.color='#fff'}
+}
+function updateTopbarStatus(){
+  const s=document.getElementById('topbar-status');
+  const t=document.getElementById('topbar-status-text');
+  if(currentUser&&currentUser.status==='online'){
+    s.className='status-badge online';t.textContent='Online';
+  }else{s.className='status-badge offline';t.textContent='Offline';}
+}
+function startClock(){
+  if(clockInterval)clearInterval(clockInterval);
+  const el=document.getElementById('live-clock');
+  const tick=()=>{el.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'})};
+  tick();clockInterval=setInterval(tick,1000);
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed')}
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',isDark?'light':'dark');
+}
+function navigateTo(page){
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const activeNav=document.getElementById('nav-'+page);
+  if(activeNav)activeNav.classList.add('active');
+  const titles={dashboard:'Dashboard',employees:'Employees',attendance:'Attendance',reports:'Work Reports','my-reports':'My Work Reports',analytics:'Analytics',notifications:'Notifications',audit:'Audit Logs',profile:'My Profile'};
+  document.getElementById('topbar-title').textContent=titles[page]||page;
+  const content=document.getElementById('content');
+  const renderers={dashboard:renderDashboard,employees:renderEmployees,attendance:renderAttendance,reports:renderReports,'my-reports':renderMyReports,analytics:renderAnalytics,notifications:renderNotifications,audit:renderAudit,profile:renderProfile};
+  if(renderers[page])renderers[page](content);
+  else content.innerHTML='<div class="empty-state"><div class="empty-icon">🚧</div><p>Page under construction</p></div>';
+}
+
+// =====================
+// SVG ICONS
+// =====================
+const homeIcon=`<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>`;
+const chartIcon=`<svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`;
+const usersIcon=`<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`;
+const calIcon=`<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`;
+const fileIcon=`<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>`;
+const bellIcon=`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>`;
+const logIcon=`<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+const userIcon=`<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+// =====================
+// PAGES
+// =====================
+
+// --- DASHBOARD ---
+function renderDashboard(el){
+  if(currentUser.role==='admin')renderAdminDashboard(el);
+  else renderEmployeeDashboard(el);
+}
+
+function renderAdminDashboard(el){
+  const users=getUsers().filter(u=>u.role==='employee');
+  const att=getAttendance().filter(a=>a.date===today());
+  const online=users.filter(u=>u.status==='online');
+  const offline=users.filter(u=>u.status==='offline');
+  const presentIds=att.map(a=>a.userId);
+  const present=users.filter(u=>presentIds.includes(u.id));
+  const reports=getReports().filter(r=>r.date===today());
+  const totalHours=att.reduce((s,a)=>s+parseFloat(hoursWorked(a.loginTime,a.logoutTime)),0).toFixed(1);
+
+  el.innerHTML=`
+  <div class="page-header">
+    <div>
+      <div class="page-title">Admin Dashboard</div>
+      <div class="page-sub">${new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+    </div>
+  </div>
+  <div class="grid grid-4 mb-4">
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>',online.length,'Online Now','Active employees','#10b981','var(--success-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',present.length,"Today's Present","Checked in today",'#4f46e5','var(--primary-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>',reports.length,"Today's Reports","Work logs submitted",'#f59e0b','var(--warn-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>',totalHours+'h','Active Hours','Total today','#3b82f6','var(--info-light)')}
+  </div>
+  <div class="grid grid-2 mb-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Live Employee Status</div><span class="badge badge-green"><span class="online-dot"></span>Live</span></div>
+      <div style="overflow:hidden">
+        ${users.map(u=>`
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div class="avatar" style="background:${u.avatarBg||'var(--primary-light)'};color:#fff;width:36px;height:36px;font-size:12px">${u.avatar||getInitials(u.name)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(u.name)}</div>
+              <div style="font-size:12px;color:var(--text2)">${escHtml(u.designation||u.dept||'Employee')}</div>
+            </div>
+            ${statusBadge(u.status==='online'?'Online':'Offline')}
+            ${u.status==='online'&&u.lastLogin?`<span style="font-size:12px;color:var(--text3)">${fmtTime(u.lastLogin)}</span>`:''}
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Today's Reports</div></div>
+      ${reports.length===0?'<div class="empty-state" style="padding:30px"><div class="empty-icon">📋</div><p>No reports yet today</p></div>':
+        reports.slice(0,5).map(r=>{
+          const u=getUsers().find(u=>u.id===r.userId);
+          return`<div style="padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div style="font-weight:600;font-size:13.5px">${escHtml(r.title)}</div>
+              ${statusBadge(r.status)}
+            </div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px">${escHtml(u?u.name:'?')} · ${escHtml(r.category)} · ${r.hours||'?'}h</div>
+          </div>`;
+        }).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Today's Attendance</div>
+      <button class="btn btn-secondary btn-sm" onclick="navigateTo('attendance')">View All</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Employee</th><th>Login</th><th>Logout</th><th>Hours</th><th>Status</th></tr></thead>
+        <tbody>
+          ${att.length===0?`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">No attendance records today</td></tr>`:
+            att.map(a=>{
+              const u=getUsers().find(u=>u.id===a.userId);
+              return`<tr>
+                <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:10px;background:${u?.avatarBg||'var(--primary-light)'};color:#fff">${u?.avatar||'?'}</div><span>${escHtml(u?.name||'Unknown')}</span></div></td>
+                <td>${fmtTime(a.loginTime)}</td>
+                <td>${a.logoutTime?fmtTime(a.logoutTime):'<span class="online-dot"></span>Active'}</td>
+                <td>${hoursWorked(a.loginTime,a.logoutTime)}h</td>
+                <td>${statusBadge(a.logoutTime?'Offline':'Online')}</td>
+              </tr>`;
+            }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function metricCard(iconSvg,value,label,sub,color,bg){
+  return`<div class="metric-card" style="display:flex;align-items:center;gap:14px">
+    <div class="metric-icon" style="background:${bg};color:${color}">${iconSvg}</div>
+    <div>
+      <div class="metric-label">${label}</div>
+      <div class="metric-value" style="color:${color}">${value}</div>
+      <div class="metric-sub">${sub}</div>
+    </div>
+  </div>`;
+}
+
+function renderEmployeeDashboard(el){
+  const todayAtt=getAttendance().find(a=>a.userId===currentUser.id&&a.date===today());
+  const myReports=getReports().filter(r=>r.userId===currentUser.id);
+  const todayReports=myReports.filter(r=>r.date===today());
+  const pendingTasks=myReports.filter(r=>r.status==='Pending'||r.status==='In Progress');
+  const completedToday=todayReports.filter(r=>r.status==='Completed');
+  const workedHours=todayAtt?hoursWorked(todayAtt.loginTime,todayAtt.logoutTime):0;
+
+  el.innerHTML=`
+  <div class="page-header"><div>
+    <div class="page-title">Welcome back, ${escHtml(currentUser.name.split(' ')[0])}! 👋</div>
+    <div class="page-sub">${currentUser.designation||'Employee'} · ${new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+  </div></div>
+  <div class="card mb-4" style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border:none;color:#fff">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="avatar" style="width:52px;height:52px;font-size:18px;background:rgba(255,255,255,.2);color:#fff">${currentUser.avatar||getInitials(currentUser.name)}</div>
+      <div style="flex:1">
+        <div style="font-size:18px;font-weight:700">${escHtml(currentUser.name)}</div>
+        <div style="opacity:.85;margin-top:3px">${currentUser.designation||'Employee'} · ${currentUser.dept||'General'}</div>
+        <div style="opacity:.7;font-size:13px;margin-top:4px">Login: ${todayAtt?fmtTime(todayAtt.loginTime):'Not yet'} · Status: ${currentUser.status==='online'?'🟢 Online':'⭕ Offline'}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:28px;font-weight:700">${workedHours}h</div>
+        <div style="opacity:.75;font-size:12px">Today's hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="grid grid-4 mb-4">
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>',workedHours+'h','Hours Today','Working time','#4f46e5','var(--primary-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',completedToday.length,'Completed Today','Tasks done','#10b981','var(--success-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',pendingTasks.length,'Pending Tasks','Need attention','#f59e0b','var(--warn-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>',myReports.length,'Total Reports','All time','#3b82f6','var(--info-light)')}
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">My Recent Reports</div><button class="btn btn-secondary btn-sm" onclick="navigateTo('my-reports')">View All</button></div>
+      ${myReports.length===0?'<div class="empty-state" style="padding:30px"><div class="empty-icon">📋</div><p>No reports yet</p></div>':
+        myReports.slice(0,5).map(r=>`
+          <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div style="font-weight:600;font-size:13.5px">${escHtml(r.title)}</div>${statusBadge(r.status)}
+            </div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px">${escHtml(r.category)} · ${fmtDate(r.date)} · ${r.hours||0}h</div>
+          </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Attendance This Week</div></div>
+      ${renderWeekAttendance()}
+    </div>
+  </div>`;
+}
+
+function renderWeekAttendance(){
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat'];
+  const att=getAttendance().filter(a=>a.userId===currentUser.id);
+  const now=new Date();
+  const weekStart=new Date(now);weekStart.setDate(now.getDate()-now.getDay()+1);
+  const rows=days.map((_,i)=>{
+    const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);
+    const dateStr=d.toISOString().slice(0,10);
+    const rec=att.find(a=>a.date===dateStr);
+    const isToday=dateStr===today();
+    const isFuture=d>new Date();
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;text-align:center;font-size:12px;font-weight:600;color:${isToday?'var(--primary)':'var(--text2)'}">${days[i]}</div>
+      <div style="font-size:12px;color:var(--text3);width:72px">${d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}</div>
+      ${isFuture?'<span class="badge badge-gray">—</span>':
+        rec?`<span class="badge badge-green">Present</span><span style="font-size:12px;color:var(--text2);margin-left:auto">${hoursWorked(rec.loginTime,rec.logoutTime)}h</span>`:
+        '<span class="badge badge-red">Absent</span>'}
+    </div>`;
+  });
+  return rows.join('');
+}
+
+// --- EMPLOYEES ---
+function renderEmployees(el){
+  if(currentUser.role!=='admin'){el.innerHTML='<div class="empty-state">Access denied</div>';return}
+  const users=getUsers().filter(u=>u.role==='employee');
+  const search=el.querySelector?.('#emp-search')?.value||'';
+  el.innerHTML=`
+  <div class="page-header">
+    <div><div class="page-title">Employees</div><div class="page-sub">${users.length} total employees</div></div>
+    <button class="btn btn-primary" onclick="showAddEmployee()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Employee
+    </button>
+  </div>
+  <div class="card mb-4" style="padding:12px 16px">
+    <div class="search-bar" style="max-width:360px">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="emp-search" placeholder="Search employees..." oninput="filterEmployees(this.value)">
+    </div>
+  </div>
+  <div class="grid grid-3" id="emp-grid">
+    ${users.map(u=>employeeCard(u)).join('')}
+  </div>`;
+}
+
+function filterEmployees(q){
+  const users=getUsers().filter(u=>u.role==='employee');
+  const filtered=q?users.filter(u=>u.name.toLowerCase().includes(q.toLowerCase())||u.email.toLowerCase().includes(q.toLowerCase())||(u.dept||'').toLowerCase().includes(q.toLowerCase())):users;
+  document.getElementById('emp-grid').innerHTML=filtered.map(u=>employeeCard(u)).join('');
+}
+
+function employeeCard(u){
+  const att=getAttendance().filter(a=>a.userId===u.id);
+  const reports=getReports().filter(r=>r.userId===u.id);
+  const todayAtt=att.find(a=>a.date===today());
+  const workedToday=todayAtt?hoursWorked(todayAtt.loginTime,todayAtt.logoutTime):0;
+  return`<div class="card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div class="avatar" style="width:44px;height:44px;font-size:14px;background:${u.avatarBg||'var(--primary)'};color:#fff">${u.avatar||getInitials(u.name)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(u.name)}</div>
+        <div style="font-size:12px;color:var(--text2)">${escHtml(u.designation||'Employee')}</div>
+        ${statusBadge(u.status==='online'?'Online':'Offline')}
+      </div>
+    </div>
+    <div style="font-size:12.5px;color:var(--text2);margin-bottom:12px">
+      <div>📧 ${escHtml(u.email)}</div>
+      <div>🏢 ${escHtml(u.dept||'General')}</div>
+      <div>📅 Joined: ${fmtDate(u.joinDate)}</div>
+    </div>
+    <div class="grid grid-3" style="gap:8px;margin-bottom:14px">
+      <div style="text-align:center;background:var(--bg3);border-radius:8px;padding:8px">
+        <div style="font-size:16px;font-weight:700;color:var(--primary)">${att.length}</div>
+        <div style="font-size:10px;color:var(--text3)">Days</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border-radius:8px;padding:8px">
+        <div style="font-size:16px;font-weight:700;color:var(--success)">${reports.length}</div>
+        <div style="font-size:10px;color:var(--text3)">Reports</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border-radius:8px;padding:8px">
+        <div style="font-size:16px;font-weight:700;color:var(--warn)">${workedToday}h</div>
+        <div style="font-size:10px;color:var(--text3)">Today</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="viewEmployee('${u.id}')">View</button>
+      <button class="btn btn-secondary btn-sm" style="flex:1" onclick="editEmployee('${u.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${u.id}')">
+        <svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function showAddEmployee(){
+  openGenericModal('Add New Employee',`
+    <div class="form-grid">
+      <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-row"><label>Full Name *</label><input type="text" id="emp-name" placeholder="Full Name"></div>
+        <div class="form-row"><label>Email *</label><input type="email" id="emp-email" placeholder="email@nexserve.com"></div>
+      </div>
+      <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-row"><label>Password *</label><input type="password" id="emp-pass" placeholder="Password"></div>
+        <div class="form-row"><label>Phone</label><input type="tel" id="emp-phone" placeholder="9876543210"></div>
+      </div>
+      <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-row"><label>Designation</label><input type="text" id="emp-desig" placeholder="e.g. Sales Executive"></div>
+        <div class="form-row"><label>Department</label>
+          <select id="emp-dept"><option>Sales</option><option>Support</option><option>Networking</option><option>Marketing</option><option>Administration</option><option>IT</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="form-row"><label>Join Date</label><input type="date" id="emp-join" value="${today()}"></div>
+    </div>`,
+    [
+      {label:'Cancel',cls:'btn-secondary',action:'closeGenericModal()'},
+      {label:'Add Employee',cls:'btn-primary',action:'saveNewEmployee()'}
+    ]
+  );
+}
+
+function saveNewEmployee(){
+  const name=document.getElementById('emp-name').value.trim();
+  const email=document.getElementById('emp-email').value.trim();
+  const pass=document.getElementById('emp-pass').value;
+  if(!name||!email||!pass){toast('Please fill required fields','danger');return}
+  const users=getUsers();
+  if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())){toast('Email already exists','danger');return}
+  const colors=['#4f46e5','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#06b6d4'];
+  const newUser={
+    id:uid(),name,email,password:pass,role:'employee',
+    designation:document.getElementById('emp-desig').value,
+    dept:document.getElementById('emp-dept').value,
+    phone:document.getElementById('emp-phone').value,
+    joinDate:document.getElementById('emp-join').value,
+    status:'offline',
+    avatar:getInitials(name),
+    avatarBg:colors[Math.floor(Math.random()*colors.length)]
+  };
+  users.push(newUser);saveUsers(users);
+  closeGenericModal();
+  toast(`Employee ${name} added successfully!`,'success');
+  navigateTo('employees');
+}
+
+function editEmployee(id){
+  const u=getUsers().find(u=>u.id===id);
+  if(!u)return;
+  openGenericModal('Edit Employee',`
+    <div class="form-grid">
+      <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-row"><label>Full Name</label><input type="text" id="ee-name" value="${escHtml(u.name)}"></div>
+        <div class="form-row"><label>Email</label><input type="email" id="ee-email" value="${escHtml(u.email)}"></div>
+      </div>
+      <div class="form-grid form-grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-row"><label>Designation</label><input type="text" id="ee-desig" value="${escHtml(u.designation||'')}"></div>
+        <div class="form-row"><label>Department</label>
+          <select id="ee-dept"><option ${u.dept==='Sales'?'selected':''}>Sales</option><option ${u.dept==='Support'?'selected':''}>Support</option><option ${u.dept==='Networking'?'selected':''}>Networking</option><option ${u.dept==='Marketing'?'selected':''}>Marketing</option><option ${u.dept==='Administration'?'selected':''}>Administration</option><option ${u.dept==='IT'?'selected':''}>IT</option><option ${u.dept==='Other'?'selected':''}>Other</option></select>
+        </div>
+      </div>
+      <div class="form-row"><label>Phone</label><input type="tel" id="ee-phone" value="${escHtml(u.phone||'')}"></div>
+      <div class="form-row"><label>New Password (leave blank to keep)</label><input type="password" id="ee-pass" placeholder="New password..."></div>
+    </div>`,
+    [
+      {label:'Cancel',cls:'btn-secondary',action:'closeGenericModal()'},
+      {label:'Save Changes',cls:'btn-primary',action:`saveEditEmployee('${id}')`}
+    ]
+  );
+}
+
+function saveEditEmployee(id){
+  const users=getUsers();const idx=users.findIndex(u=>u.id===id);
+  if(idx<0)return;
+  users[idx].name=document.getElementById('ee-name').value.trim()||users[idx].name;
+  users[idx].email=document.getElementById('ee-email').value.trim()||users[idx].email;
+  users[idx].designation=document.getElementById('ee-desig').value.trim();
+  users[idx].dept=document.getElementById('ee-dept').value;
+  users[idx].phone=document.getElementById('ee-phone').value.trim();
+  const np=document.getElementById('ee-pass').value;
+  if(np)users[idx].password=np;
+  users[idx].avatar=getInitials(users[idx].name);
+  saveUsers(users);
+  closeGenericModal();
+  toast('Employee updated!','success');
+  navigateTo('employees');
+}
+
+function deleteEmployee(id){
+  const u=getUsers().find(u=>u.id===id);
+  if(!u)return;
+  openGenericModal('Delete Employee',`<p>Are you sure you want to delete <strong>${escHtml(u.name)}</strong>? This action cannot be undone.</p>`,
+    [
+      {label:'Cancel',cls:'btn-secondary',action:'closeGenericModal()'},
+      {label:'Delete',cls:'btn-danger',action:`confirmDeleteEmployee('${id}')`}
+    ]
+  );
+}
+
+function confirmDeleteEmployee(id){
+  const users=getUsers().filter(u=>u.id!==id);
+  saveUsers(users);closeGenericModal();
+  toast('Employee deleted','warn');
+  navigateTo('employees');
+}
+
+function viewEmployee(id){
+  const u=getUsers().find(u=>u.id===id);if(!u)return;
+  const att=getAttendance().filter(a=>a.userId===id);
+  const reports=getReports().filter(r=>r.userId===id);
+  const totalHrs=att.reduce((s,a)=>s+parseFloat(hoursWorked(a.loginTime,a.logoutTime)),0).toFixed(1);
+  openGenericModal(`${u.name} — Profile`,`
+    <div style="text-align:center;margin-bottom:20px">
+      <div class="avatar" style="width:64px;height:64px;font-size:22px;background:${u.avatarBg||'var(--primary)'};color:#fff;margin:0 auto 10px">${u.avatar||getInitials(u.name)}</div>
+      <div style="font-size:18px;font-weight:700">${escHtml(u.name)}</div>
+      <div style="color:var(--text2)">${escHtml(u.designation||'Employee')} · ${escHtml(u.dept||'General')}</div>
+      ${statusBadge(u.status==='online'?'Online':'Offline')}
+    </div>
+    <div class="grid grid-3" style="gap:10px;margin-bottom:16px">
+      <div style="text-align:center;background:var(--bg3);border-radius:8px;padding:12px">
+        <div style="font-size:22px;font-weight:700;color:var(--primary)">${att.length}</div><div style="font-size:12px;color:var(--text3)">Days Present</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border-radius:8px;padding:12px">
+        <div style="font-size:22px;font-weight:700;color:var(--success)">${reports.length}</div><div style="font-size:12px;color:var(--text3)">Reports</div>
+      </div>
+      <div style="text-align:center;background:var(--bg3);border-radius:8px;padding:12px">
+        <div style="font-size:22px;font-weight:700;color:var(--warn)">${totalHrs}h</div><div style="font-size:12px;color:var(--text3)">Total Hours</div>
+      </div>
+    </div>
+    <table style="width:100%;font-size:13px">
+      <tr><td style="color:var(--text2);padding:5px 0">Email</td><td style="font-weight:500">${escHtml(u.email)}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Phone</td><td>${escHtml(u.phone||'—')}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Joined</td><td>${fmtDate(u.joinDate)}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Last Login</td><td>${u.lastLogin?fmtDateTime(u.lastLogin):'—'}</td></tr>
+    </table>`,
+    [{label:'Close',cls:'btn-secondary',action:'closeGenericModal()'}]
+  );
+}
+
+// --- ATTENDANCE ---
+function renderAttendance(el){
+  const isAdmin=currentUser.role==='admin';
+  let att=getAttendance();
+  if(!isAdmin)att=att.filter(a=>a.userId===currentUser.id);
+  att=att.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const users=getUsers();
+
+  el.innerHTML=`
+  <div class="page-header">
+    <div><div class="page-title">${isAdmin?'All Attendance':'My Attendance'}</div></div>
+    ${isAdmin?`<div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" onclick="exportAttendanceCSV()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV
+      </button>
+    </div>`:''}
+  </div>
+  <div class="filter-row">
+    <input type="date" id="att-date" value="${today()}" onchange="reRenderAttendance()">
+    ${isAdmin?`<select id="att-user" onchange="reRenderAttendance()" style="width:auto;min-width:160px;padding:6px 10px;font-size:13px">
+      <option value="">All Employees</option>
+      ${users.filter(u=>u.role==='employee').map(u=>`<option value="${u.id}">${escHtml(u.name)}</option>`).join('')}
+    </select>`:''}
+  </div>
+  <div class="table-wrap">
+    <table id="att-table">
+      <thead><tr>${isAdmin?'<th>Employee</th>':''}<th>Date</th><th>Login</th><th>Logout</th><th>Hours</th><th>Status</th><th>Report</th></tr></thead>
+      <tbody id="att-tbody">
+        ${renderAttBody(att,users,isAdmin)}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function renderAttBody(att,users,isAdmin){
+  if(att.length===0)return`<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">No attendance records found</td></tr>`;
+  return att.slice(0,100).map(a=>{
+    const u=users.find(u=>u.id===a.userId);
+    const hasReport=!!a.report;
+    return`<tr>
+      ${isAdmin?`<td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:26px;height:26px;font-size:9px;background:${u?.avatarBg||'var(--primary)'};color:#fff">${u?.avatar||'?'}</div>${escHtml(u?.name||'?')}</div></td>`:''}
+      <td>${fmtDate(a.date)}</td>
+      <td>${fmtTime(a.loginTime)}</td>
+      <td>${a.logoutTime?fmtTime(a.logoutTime):'<span class="badge badge-green"><span class="online-dot"></span>Active</span>'}</td>
+      <td>${hoursWorked(a.loginTime,a.logoutTime)}h</td>
+      <td>${statusBadge(a.logoutTime?'Offline':'Online')}</td>
+      <td>${hasReport?`<span class="badge badge-green">Submitted</span>`:a.logoutTime?`<span class="badge badge-red">Missing</span>`:'<span class="badge badge-gray">—</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function reRenderAttendance(){
+  const isAdmin=currentUser.role==='admin';
+  const dateVal=document.getElementById('att-date')?.value||'';
+  const userVal=isAdmin?document.getElementById('att-user')?.value||'':'';
+  let att=getAttendance();
+  if(!isAdmin)att=att.filter(a=>a.userId===currentUser.id);
+  if(dateVal)att=att.filter(a=>a.date===dateVal);
+  if(userVal)att=att.filter(a=>a.userId===userVal);
+  att=att.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const users=getUsers();
+  const tbody=document.getElementById('att-tbody');
+  if(tbody)tbody.innerHTML=renderAttBody(att,users,isAdmin);
+}
+
+function exportAttendanceCSV(){
+  const att=getAttendance();const users=getUsers();
+  const rows=[['Employee','Email','Date','Login Time','Logout Time','Hours','Report Submitted']];
+  att.forEach(a=>{
+    const u=users.find(u=>u.id===a.userId);
+    rows.push([u?.name||'?',u?.email||'?',a.date,fmtTime(a.loginTime),a.logoutTime?fmtTime(a.logoutTime):'Active',hoursWorked(a.loginTime,a.logoutTime),a.report?'Yes':'No']);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  downloadFile(csv,'attendance.csv','text/csv');
+  toast('Attendance exported!','success');
+}
+
+function downloadFile(content,filename,type){
+  const blob=new Blob([content],{type});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+
+// --- REPORTS ---
+function renderReports(el){
+  if(currentUser.role!=='admin'){el.innerHTML='<div class="empty-state">Access denied</div>';return}
+  let reports=getReports().sort((a,b)=>b.createdAt-a.createdAt);
+  const users=getUsers();
+
+  el.innerHTML=`
+  <div class="page-header">
+    <div><div class="page-title">Work Reports</div><div class="page-sub">${reports.length} total reports</div></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" onclick="exportReportsCSV()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV
+      </button>
+      <button class="btn btn-secondary" onclick="exportReportsXLSX()">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Export XLSX
+      </button>
+    </div>
+  </div>
+  <div class="filter-row">
+    <input type="date" id="rpt-date" onchange="reRenderReports()">
+    <select id="rpt-user" onchange="reRenderReports()">
+      <option value="">All Employees</option>
+      ${users.filter(u=>u.role==='employee').map(u=>`<option value="${u.id}">${escHtml(u.name)}</option>`).join('')}
+    </select>
+    <select id="rpt-cat" onchange="reRenderReports()">
+      <option value="">All Categories</option>
+      <option>Laptop Sales</option><option>Lead Generation</option><option>Technical Support</option><option>Customer Support</option><option>AMC</option><option>Office Setup</option><option>Networking</option><option>Website</option><option>Marketing</option><option>Administration</option><option>Other</option>
+    </select>
+    <select id="rpt-status" onchange="reRenderReports()">
+      <option value="">All Status</option><option>Completed</option><option>In Progress</option><option>Pending</option><option>Blocked</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Employee</th><th>Date</th><th>Title</th><th>Category</th><th>Status</th><th>Priority</th><th>Hours</th><th>Client</th></tr></thead>
+      <tbody id="rpt-tbody">${renderReportBody(reports,users)}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderReportBody(reports,users){
+  if(reports.length===0)return`<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">No reports found</td></tr>`;
+  return reports.slice(0,100).map(r=>{
+    const u=users.find(u=>u.id===r.userId);
+    return`<tr onclick="viewReport('${r.id}')" style="cursor:pointer">
+      <td>${escHtml(u?.name||'?')}</td>
+      <td>${fmtDate(r.date)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(r.title)}">${escHtml(r.title)}</td>
+      <td><span class="chip">${escHtml(r.category)}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td>${statusBadge(r.priority||'Medium')}</td>
+      <td>${r.hours||'—'}h</td>
+      <td>${escHtml(r.client||'—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function reRenderReports(){
+  let reports=getReports().sort((a,b)=>b.createdAt-a.createdAt);
+  const dateVal=document.getElementById('rpt-date')?.value||'';
+  const userVal=document.getElementById('rpt-user')?.value||'';
+  const catVal=document.getElementById('rpt-cat')?.value||'';
+  const stVal=document.getElementById('rpt-status')?.value||'';
+  if(dateVal)reports=reports.filter(r=>r.date===dateVal);
+  if(userVal)reports=reports.filter(r=>r.userId===userVal);
+  if(catVal)reports=reports.filter(r=>r.category===catVal);
+  if(stVal)reports=reports.filter(r=>r.status===stVal);
+  const tbody=document.getElementById('rpt-tbody');
+  if(tbody)tbody.innerHTML=renderReportBody(reports,getUsers());
+}
+
+function viewReport(id){
+  const r=getReports().find(r=>r.id===id);if(!r)return;
+  const u=getUsers().find(u=>u.id===r.userId);
+  openGenericModal('Work Report Details',`
+    <div style="margin-bottom:14px">
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px">${escHtml(r.title)}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${statusBadge(r.status)}${statusBadge(r.priority||'Medium')}<span class="chip">${escHtml(r.category)}</span></div>
+    </div>
+    <table style="width:100%;font-size:13px;margin-bottom:14px">
+      <tr><td style="color:var(--text2);padding:5px 0;width:120px">Employee</td><td>${escHtml(u?.name||'?')}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Date</td><td>${fmtDate(r.date)}</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Hours Spent</td><td>${r.hours||'—'}h</td></tr>
+      <tr><td style="color:var(--text2);padding:5px 0">Client</td><td>${escHtml(r.client||'—')}</td></tr>
+    </table>
+    <div style="margin-bottom:12px"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Description</div>
+    <div style="background:var(--bg3);padding:12px;border-radius:8px;font-size:13.5px;line-height:1.6">${escHtml(r.desc||'—')}</div></div>
+    ${r.remarks?`<div><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">Remarks</div><div style="color:var(--text2);font-size:13px">${escHtml(r.remarks)}</div></div>`:''}`,
+    [{label:'Close',cls:'btn-secondary',action:'closeGenericModal()'}]
+  );
+}
+
+function exportReportsCSV(){
+  const reports=getReports();const users=getUsers();
+  const rows=[['Employee','Date','Title','Category','Status','Priority','Hours','Client','Description']];
+  reports.forEach(r=>{
+    const u=users.find(u=>u.id===r.userId);
+    rows.push([u?.name||'?',r.date,r.title,r.category,r.status,r.priority||'Medium',r.hours||0,r.client||'',r.desc||'']);
+  });
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadFile(csv,'reports.csv','text/csv');
+  toast('Reports exported!','success');
+}
+
+function exportReportsXLSX(){
+  if(typeof XLSX==='undefined'){toast('XLSX library not loaded','danger');return}
+  const reports=getReports();const users=getUsers();
+  const data=reports.map(r=>{
+    const u=users.find(u=>u.id===r.userId);
+    return{Employee:u?.name||'?',Date:r.date,Title:r.title,Category:r.category,Status:r.status,Priority:r.priority||'Medium',Hours:r.hours||0,Client:r.client||'',Description:r.desc||''};
+  });
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Reports');
+  XLSX.writeFile(wb,'nexserve_reports.xlsx');
+  toast('XLSX exported!','success');
+}
+
+// --- MY REPORTS ---
+function renderMyReports(el){
+  let reports=getReports().filter(r=>r.userId===currentUser.id).sort((a,b)=>b.createdAt-a.createdAt);
+  el.innerHTML=`
+  <div class="page-header">
+    <div><div class="page-title">My Work Reports</div><div class="page-sub">${reports.length} total submissions</div></div>
+  </div>
+  <div class="filter-row">
+    <input type="date" id="mr-date" onchange="reRenderMyReports()">
+    <select id="mr-status" onchange="reRenderMyReports()">
+      <option value="">All Status</option><option>Completed</option><option>In Progress</option><option>Pending</option><option>Blocked</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Date</th><th>Title</th><th>Category</th><th>Status</th><th>Priority</th><th>Hours</th></tr></thead>
+      <tbody id="mr-tbody">${renderMyReportBody(reports)}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderMyReportBody(reports){
+  if(reports.length===0)return`<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text3)">No reports yet</td></tr>`;
+  return reports.map(r=>`<tr onclick="viewReport('${r.id}')" style="cursor:pointer">
+    <td>${fmtDate(r.date)}</td>
+    <td>${escHtml(r.title)}</td>
+    <td><span class="chip">${escHtml(r.category)}</span></td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${statusBadge(r.priority||'Medium')}</td>
+    <td>${r.hours||'—'}h</td>
+  </tr>`).join('');
+}
+
+function reRenderMyReports(){
+  let reports=getReports().filter(r=>r.userId===currentUser.id).sort((a,b)=>b.createdAt-a.createdAt);
+  const dateVal=document.getElementById('mr-date')?.value||'';
+  const stVal=document.getElementById('mr-status')?.value||'';
+  if(dateVal)reports=reports.filter(r=>r.date===dateVal);
+  if(stVal)reports=reports.filter(r=>r.status===stVal);
+  const tbody=document.getElementById('mr-tbody');
+  if(tbody)tbody.innerHTML=renderMyReportBody(reports);
+}
+
+// --- ANALYTICS ---
+function renderAnalytics(el){
+  if(currentUser.role!=='admin'){el.innerHTML='<div class="empty-state">Access denied</div>';return}
+  const reports=getReports();
+  const att=getAttendance();
+  const users=getUsers().filter(u=>u.role==='employee');
+
+  // Category breakdown
+  const catCount={};
+  reports.forEach(r=>{catCount[r.category]=(catCount[r.category]||0)+1});
+  const statusCount={Completed:0,'In Progress':0,Pending:0,Blocked:0};
+  reports.forEach(r=>{if(statusCount.hasOwnProperty(r.status))statusCount[r.status]++});
+
+  // Hours per employee
+  const empHours={};
+  att.forEach(a=>{empHours[a.userId]=(empHours[a.userId]||0)+parseFloat(hoursWorked(a.loginTime,a.logoutTime))});
+
+  el.innerHTML=`
+  <div class="page-header"><div class="page-title">Analytics</div></div>
+  <div class="grid grid-4 mb-4">
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',users.length,'Total Employees','Active workforce','#4f46e5','var(--primary-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>',reports.length,'Total Reports','All submissions','#10b981','var(--success-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><polyline points="9,11 12,14 22,4"/></svg>',statusCount.Completed,'Completed Tasks','','#f59e0b','var(--warn-light)')}
+    ${metricCard('<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>',Object.values(empHours).reduce((s,h)=>s+h,0).toFixed(0)+'h','Total Hours','Across all employees','#3b82f6','var(--info-light)')}
+  </div>
+  <div class="grid grid-2 mb-4">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Reports by Category</div></div>
+      <div class="chart-wrap"><canvas id="chart-cat"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Reports by Status</div></div>
+      <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">Employee Productivity (Total Hours)</div></div>
+    <div class="chart-wrap" style="height:260px"><canvas id="chart-emp"></canvas></div>
+  </div>`;
+
+  setTimeout(()=>{
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    const textColor=isDark?'#9ba3b5':'#5a6270';
+    Chart.defaults.color=textColor;
+
+    new Chart(document.getElementById('chart-cat'),{
+      type:'doughnut',
+      data:{labels:Object.keys(catCount),datasets:[{data:Object.values(catCount),backgroundColor:['#4f46e5','#10b981','#f59e0b','#ef4444','#3b82f6','#8b5cf6','#06b6d4','#f97316','#14b8a6','#ec4899','#6b7280'],borderWidth:2,borderColor:'transparent'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:12},padding:12}}}}
+    });
+
+    new Chart(document.getElementById('chart-status'),{
+      type:'bar',
+      data:{labels:Object.keys(statusCount),datasets:[{data:Object.values(statusCount),backgroundColor:['#10b981','#3b82f6','#f59e0b','#ef4444'],borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+    });
+
+    const empLabels=users.map(u=>u.name.split(' ')[0]);
+    const empData=users.map(u=>parseFloat((empHours[u.id]||0).toFixed(1)));
+    new Chart(document.getElementById('chart-emp'),{
+      type:'bar',
+      data:{labels:empLabels,datasets:[{label:'Hours Worked',data:empData,backgroundColor:'#4f46e5',borderRadius:6,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)'}},x:{grid:{display:false}}}}
+    });
+  },100);
+}
+
+// --- NOTIFICATIONS ---
+function renderNotifications(el){
+  const ns=getNotifications().filter(n=>n.forUserId==='all'||n.forUserId===currentUser.id);
+  el.innerHTML=`
+  <div class="page-header">
+    <div><div class="page-title">Notifications</div></div>
+    <button class="btn btn-secondary btn-sm" onclick="clearNotifications()">Clear All</button>
+  </div>
+  <div class="card">
+    ${ns.length===0?'<div class="empty-state" style="padding:40px"><div class="empty-icon">🔔</div><p>No notifications</p></div>':
+      ns.slice(0,50).map(n=>`
+        <div style="display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🔔</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px">${escHtml(n.title)}</div>
+            <div style="color:var(--text2);font-size:13px;margin-top:2px">${escHtml(n.msg)}</div>
+            <div style="color:var(--text3);font-size:12px;margin-top:4px">${fmtDateTime(n.time)}</div>
+          </div>
+        </div>`).join('')}
+  </div>`;
+}
+
+function clearNotifications(){
+  saveNotifications([]);
+  navigateTo('notifications');
+  toast('Notifications cleared','success');
+}
+
+// --- AUDIT ---
+function renderAudit(el){
+  if(currentUser.role!=='admin'){el.innerHTML='<div class="empty-state">Access denied</div>';return}
+  const logs=getAuditLogs();
+  el.innerHTML=`
+  <div class="page-header"><div class="page-title">Audit Logs</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Detail</th><th>User ID</th><th>IP</th><th>Time</th></tr></thead>
+      <tbody>
+        ${logs.length===0?`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">No audit logs</td></tr>`:
+          logs.slice(0,100).map(l=>`<tr>
+            <td><span class="chip">${escHtml(l.action)}</span></td>
+            <td>${escHtml(l.detail)}</td>
+            <td style="font-size:12px;color:var(--text3)">${escHtml(l.userId)}</td>
+            <td style="font-size:12px;color:var(--text3)">${escHtml(l.ip||'—')}</td>
+            <td>${fmtDateTime(l.time)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// --- PROFILE ---
+function renderProfile(el){
+  const u=currentUser;
+  el.innerHTML=`
+  <div class="page-header"><div class="page-title">My Profile</div></div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div style="text-align:center;padding:20px 0">
+        <div class="avatar" style="width:72px;height:72px;font-size:26px;background:${u.avatarBg||'var(--primary)'};color:#fff;margin:0 auto 14px">${u.avatar||getInitials(u.name)}</div>
+        <div style="font-size:20px;font-weight:700">${escHtml(u.name)}</div>
+        <div style="color:var(--text2);margin-top:4px">${escHtml(u.designation||'Employee')}</div>
+        <div style="margin-top:10px">${statusBadge(u.status==='online'?'Online':'Offline')}</div>
+      </div>
+      <hr class="section-divider">
+      <table style="width:100%;font-size:13.5px">
+        <tr><td style="color:var(--text2);padding:7px 0">Email</td><td style="font-weight:500">${escHtml(u.email)}</td></tr>
+        <tr><td style="color:var(--text2);padding:7px 0">Phone</td><td>${escHtml(u.phone||'—')}</td></tr>
+        <tr><td style="color:var(--text2);padding:7px 0">Department</td><td>${escHtml(u.dept||'—')}</td></tr>
+        <tr><td style="color:var(--text2);padding:7px 0">Joined</td><td>${fmtDate(u.joinDate)}</td></tr>
+        <tr><td style="color:var(--text2);padding:7px 0">Role</td><td>${u.role==='admin'?'Administrator':'Employee'}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">Edit Profile</div>
+      <div class="form-grid">
+        <div class="form-row"><label>Full Name</label><input type="text" id="prof-name" value="${escHtml(u.name)}"></div>
+        <div class="form-row"><label>Phone</label><input type="tel" id="prof-phone" value="${escHtml(u.phone||'')}"></div>
+        <div class="form-row"><label>Current Password</label><input type="password" id="prof-curpass" placeholder="Current password"></div>
+        <div class="form-row"><label>New Password</label><input type="password" id="prof-newpass" placeholder="Leave blank to keep"></div>
+        <button class="btn btn-primary" onclick="saveProfile()">
+          <svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function saveProfile(){
+  const name=document.getElementById('prof-name').value.trim();
+  const phone=document.getElementById('prof-phone').value.trim();
+  const curPass=document.getElementById('prof-curpass').value;
+  const newPass=document.getElementById('prof-newpass').value;
+  const users=getUsers();
+  const idx=users.findIndex(u=>u.id===currentUser.id);
+  if(idx<0)return;
+  if(curPass&&curPass!==users[idx].password){toast('Current password is incorrect','danger');return}
+  if(name)users[idx].name=name;
+  if(phone)users[idx].phone=phone;
+  if(newPass){
+    if(newPass.length<6){toast('Password must be at least 6 characters','danger');return}
+    users[idx].password=newPass;
+  }
+  users[idx].avatar=getInitials(users[idx].name);
+  saveUsers(users);
+  currentUser=users[idx];
+  updateSidebar();
+  toast('Profile updated!','success');
+  navigateTo('profile');
+}
+
+// =====================
+// LOGOUT FLOW
+// =====================
+function initiateLogout(){
+  pendingLogout=true;
+  document.getElementById('logout-modal').classList.remove('hidden');
+}
+
+function cancelLogout(){
+  pendingLogout=false;
+  document.getElementById('logout-modal').classList.add('hidden');
+  resetLogoutForm();
+}
+
+function resetLogoutForm(){
+  ['lr-category','lr-status','lr-title','lr-desc','lr-remarks','lr-client','lr-hours'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const pri=document.getElementById('lr-priority');if(pri)pri.value='Medium';
+}
+
+function submitLogoutReport(){
+  const cat=document.getElementById('lr-category').value;
+  const status=document.getElementById('lr-status').value;
+  const title=document.getElementById('lr-title').value.trim();
+  const desc=document.getElementById('lr-desc').value.trim();
+  if(!cat){toast('Please select work category','danger');return}
+  if(!status){toast('Please select status','danger');return}
+  if(!title){toast('Please enter work title','danger');return}
+  if(!desc){toast('Please enter work description','danger');return}
+
+  const report={
+    id:uid(),
+    userId:currentUser.id,
+    date:today(),
+    category:cat,
+    title,
+    desc,
+    status,
+    priority:document.getElementById('lr-priority').value||'Medium',
+    hours:document.getElementById('lr-hours').value||0,
+    client:document.getElementById('lr-client').value.trim(),
+    remarks:document.getElementById('lr-remarks').value.trim(),
+    createdAt:Date.now()
+  };
+
+  const reports=getReports();reports.push(report);saveReports(reports);
+
+  // Update attendance
+  const att=getAttendance();
+  const todayRec=att.findIndex(a=>a.userId===currentUser.id&&a.date===today()&&!a.logoutTime);
+  const logoutTime=Date.now();
+  if(todayRec>=0){att[todayRec].logoutTime=logoutTime;att[todayRec].hours=hoursWorked(att[todayRec].loginTime,logoutTime);att[todayRec].report=report.id;saveAttendance(att);}
+
+  // Update user status
+  const users=getUsers();
+  const ui=users.findIndex(u=>u.id===currentUser.id);
+  if(ui>=0){users[ui].status='offline';saveUsers(users);}
+
+  addNotification('Report Submitted',`${currentUser.name} submitted work report`,'all');
+  addAuditLog('LOGOUT',`${currentUser.name} logged out`,currentUser.id);
+
+  document.getElementById('logout-modal').classList.add('hidden');
+  resetLogoutForm();
+  currentUser=null;loginTime=null;pendingLogout=false;
+  if(clockInterval)clearInterval(clockInterval);
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+  toast('Logged out successfully. Report saved!','success');
+}
+
+// =====================
+// GENERIC MODAL
+// =====================
+function openGenericModal(title,bodyHtml,buttons){
+  document.getElementById('gm-title').textContent=title;
+  document.getElementById('gm-body').innerHTML=bodyHtml;
+  document.getElementById('gm-footer').innerHTML=buttons.map(b=>`<button class="btn ${b.cls}" onclick="${b.action}">${b.label}</button>`).join('');
+  document.getElementById('generic-modal').classList.remove('hidden');
+}
+function closeGenericModal(){document.getElementById('generic-modal').classList.add('hidden')}
+
+// =====================
+// BOOTSTRAP
+// =====================
+initDB();
+// Theme from system
+if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark')}
+</script>
+</body>
+</html>
