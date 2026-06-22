@@ -1725,20 +1725,10 @@ function toggleSidebar(){document.getElementById('sidebar').classList.toggle('co
 // BOOT
 // =====================
 (function boot(){
-  if(window.matchMedia('(prefers-color-scheme: dark)').matches)
-    document.documentElement.setAttribute('data-theme','dark');
-  const cfg = getConfig();
-  if(cfg.demo){
-    DEMO_MODE=true;
-    initDemoDB();
-    document.getElementById('config-screen').classList.remove('active');
-    document.getElementById('auth-screen').classList.add('active');
-  } else if(cfg.url){
-    API_URL=cfg.url;
-    DEMO_MODE=false;
-    document.getElementById('config-screen').classList.remove('active');
-    document.getElementById('auth-screen').classList.add('active');
-    document.getElementById('cfg-url').value=cfg.url;
+  // Hardcode your API URL here so employees don't need to configure
+  if(!localStorage.getItem('https://nexserve1.github.io/Employee_Tracking/')){
+    localStorage.setItem('https://nexserve1.github.io/Employee_Tracking/', 'https://script.google.com/macros/s/AKfycbwu_bvLPxvCIVkYwFW_7H5SdJektiZUbEUhxEp0oZ2kcomSEwhPXXZsOj6_NhJnQNge/exec');
+    localStorage.setItem('https://nexserve1.github.io/Employee_Tracking/', 'false');
   }
 })();
 </script>
